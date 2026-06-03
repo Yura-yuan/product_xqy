@@ -113,7 +113,7 @@
     }
     .sec-bar {
       display: grid;
-      grid-template-columns: 24px minmax(0, 1fr) 92px;
+      grid-template-columns: 24px minmax(0, 1fr) 92px auto;
       gap: 8px;
       align-items: center;
       padding: 10px;
@@ -133,7 +133,34 @@
       gap: 10px;
       padding: 10px;
     }
+    .sec-body.single {
+      grid-template-columns: 1fr;
+    }
     .sec textarea { min-height: 72px; }
+    .image-list {
+      display: grid;
+      gap: 8px;
+    }
+    .image-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .image-row input {
+      min-height: 38px;
+    }
+    .image-del,
+    .image-add,
+    .sec-remove {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
     .small { color: var(--muted); font-size: 12px; }
     .table-tools {
       display: flex;
@@ -200,6 +227,43 @@
       font-weight: 700;
       font-size: 13px;
       margin-top: 8px;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20, 28, 25, .42);
+      padding: 18px;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(520px, 100%);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .modal-body {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+    }
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .type-grid label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fbfcfb;
     }
     .right { position: sticky; top: 12px; display: grid; gap: 14px; }
     @media (max-width: 1000px) {
@@ -290,27 +354,67 @@
     </div>
   </main>
 
+  <div class="modal" id="customModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="head">
+        <h2>新增自定义区块</h2>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="customTitle">区块标题</label>
+          <input id="customTitle" value="Custom Section">
+        </div>
+        <div class="type-grid">
+          <label><input type="checkbox" id="customText" checked> 文字</label>
+          <label><input type="checkbox" id="customImage"> 图片</label>
+          <label><input type="checkbox" id="customTable"> 表格</label>
+        </div>
+        <div class="btns">
+          <button class="btn primary" id="confirmCustom" type="button">确认新增</button>
+          <button class="btn" id="cancelCustom" type="button">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const PDP_CSS = `<style>
-.uss-pdp{font-family:Arial,sans-serif;color:#000;line-height:26px}
-.uss-pdp img{max-width:100%;height:auto;border:0;display:block}
-.uss-hero{margin:0 0 18px}
-.uss-title{font-size:22px;line-height:1.2;margin:20px 0 10px;font-weight:bold;color:#000}
-.uss-text{font-size:16px;margin:8px 0;color:#000}
-.uss-img{margin:10px 0 18px}
-.uss-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.uss-table-wrap{width:100%;overflow-x:auto;margin:8px 0 18px;-webkit-overflow-scrolling:touch}
-.uss-table{width:100%;min-width:1000px;border-collapse:collapse;background:#fff;font-family:Arial,sans-serif}
-.uss-table th,.uss-table td{border:0;border-bottom:1px dashed #000;padding:5px;text-align:left;font-size:16px;line-height:18px;color:#000;vertical-align:middle}
-.uss-table tr:last-child th,.uss-table tr:last-child td{border-bottom:0}
-.uss-table th,.uss-key{background:#f0f0f0;font-weight:bold;color:#000}
-.uss-table td{background:#fff}
-.uss-model-table th,.uss-model-table td{text-align:center;white-space:nowrap}
-.uss-model-table a{color:#000;text-decoration:underline}
-.uss-faq-q{font-size:16px;margin:8px 0 0;font-weight:bold;background:#f2f2f2;padding:5px}
-.uss-faq-a{font-size:16px;margin:0 0 8px;padding:5px}
+.uss-pdp{font-family:Arial,sans-serif;color:#333;line-height:1.6;margin:0;padding:0}
+.section-title{font-size:22px;font-weight:bold;margin:25px 0 10px;color:#000;padding-bottom:8px;line-height:1.25}
+.section-p{font-size:16px;line-height:26px;margin:10px 0 20px;color:#000}
+.img-box{width:100%;margin:15px 0;display:block}
+.img-box img{width:100%;height:auto;display:block;border:0}
+.features-desktop{display:block!important}
+.features-mobile{display:none!important}
+.features-list{list-style:disc;list-style-position:outside;padding-left:18px;margin:10px 0 20px}
+.features-list li{font-size:16px;line-height:28px;color:#000;padding:0;margin-bottom:8px}
+.table-wrapper{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:15px 0 30px}
+.table-subtitle{font-size:16px;font-weight:bold;color:#555;margin:15px 0 5px}
+.visco-table{width:100%;min-width:600px;border-collapse:collapse;background-color:#fff}
+.visco-table tr{border-bottom:1px dashed #666}
+.visco-table tr:last-child{border-bottom:0}
+.visco-table th,.visco-table td{text-align:left;padding:10px 8px;font-size:15px;vertical-align:middle;line-height:20px}
+.visco-table th{background-color:#f0f0f0;color:#000;font-weight:bold;width:20%}
+.visco-table td{color:#333}
+.visco-table.general-table th{width:1%;white-space:normal;word-break:normal;overflow-wrap:break-word}
+.visco-table.general-table td{white-space:normal;word-break:normal;overflow-wrap:break-word}
+.visco-table a{color:#0066cc;text-decoration:none}
+.visco-table a:hover{text-decoration:underline}
+.packing-container{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:20px 0}
+.packing-text{flex:1;min-width:250px}
+.packing-text ol{padding-left:20px;text-align:left;line-height:45px;color:#000;margin-top:10px}
+.packing-text li{font-size:16px}
+.packing-img{width:40%;text-align:center;display:flex;align-items:center;justify-content:center}
+.packing-img img{max-width:100%;height:auto;margin-top:20px;border:0}
+.faq-wrapper{margin:20px 0}
+.faq-block{margin-bottom:15px}
+.faq-q{font-size:16px;font-weight:bold;color:#000;margin:0 0 5px}
+.faq-a{font-size:16px;line-height:24px;color:#333;margin:0}
+.download-box{font-size:16px;margin:20px 0;color:#000}
+.download-box a{color:#0066cc;text-decoration:none;font-weight:bold}
+.download-box a:hover{text-decoration:underline}
 .uss-note{font-size:14px;color:#555;margin:6px 0}
-@media(max-width:600px){.uss-grid{grid-template-columns:1fr}.uss-title{font-size:20px}}
+@media only screen and (max-width:768px){.section-title{font-size:20px}.visco-table th,.visco-table td{font-size:14px;padding:8px 6px}.features-desktop{display:none!important}.features-mobile{display:block!important}.packing-container{flex-direction:column;align-items:flex-start}.packing-text{width:100%}.packing-img{width:100%}}
 </style>`;
 
     const templates = {
@@ -327,8 +431,10 @@
     const tableData = {"JFMSV":{"SPECIFICATIONS":[["Model","USS-MSV00205","Thread Type","NPT/G"],["Size","1/2\"","Wiring Type","3 Wire"],["Valve Material","Brass","Ball Seal","PTFE"],["Operating Time","< 8 Seconds","Working Voltage","9 - 24V AC/DC"],["Max Power","2 W","Max Torque","2.5 N m"],["Max Medium Pressure","1.0 Mpa","Temperature Range for Flow Medium","0°C to 90°C"],["Life Expectancy","80,000 to 100,000 Cycles","Bore Type","Full"],["Ambient Temperature Range","-10°C to 40°C","Enclosure Rating","IP65"]],"OTHER MODELS":[["Link","201","202","211","203","212","204","213","205","214","206","215","207","216"],["Material","SS304","SS304","SS304","SS304","SS304","SS304","SS304","Brass","Brass","Brass","Brass","Brass","Brass"],["Size(NPT/G)","1/4","1/2","1/2","3/4","3/4","1","1","1/2","1/2","3/4","3/4","1","1"],["Bore Type","Full","Full","Full","Full","Full","Full","Full","Full","Full","Standard","Standard","Standard","Standard"],["Wiring","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break","3-wire 1-way Positive Break"],["Manual Function","√","√","×","√","×","√","×","√","×","√","×","√","×"]]},"JFSV":{"Technical Data":[["Model","USS2-00402","Port Size","1/2\""],["Thread Type","NPT / G","Body Material","Brass"],["Operation Type","Semi-direct","Wiring Type","Lead Wire"],["Operation Mode","Normally Closed","Flow Aperture","16 mm"],["Flow value","4.8 Cv","Gasket/Diaphragm/Seal","Viton"],["Operating Time","≤1s","Rated Voltage","AC 110V / 220V , ± 10%"],["IP Rating","IP65","Power","21 VA"],["Operating Temperature","14℉-248℉(-10℃-120℃)","Suitable Liquid Viscosity","20 cst Below"],["Operating Pressure","Air/Water/Diesel fuel/Kerosene: 0-7 Bar (0-101 PSI); Oil: 0-5 Bar(0-72 PSI)","Suitable Media","Air, water, oil, natural gas, diesel fuel, kerosene etc."],["Net Weight","1.70 lbs","Product Dimensions","4.20\"x3.21\"x2.26\""]]},"JFPSV":{"Specifications":[["Model","USS-PSV00040","Brand","U.S. Solid"],["Size","1/8\"","Flow Aperture","2.5 mm"],["Valve Material","Aluminum Alloy","Valve Type","2 way 2 position"],["Rated Voltage","DC 12V ± 10%","Current","0.2 A"],["Power Rating","4.8 W","Applicable Media","Filtered Air"],["Level of protection","IP65","Flow Value","0.23 Cv"],["Working Pressure","0-0.8 MPa","Operating Temperature","-5°C ~ 50°C"],["Maximum Operational temperature","NPT","Operating State","Normally Closed"]]},"JFDVT":{"Specifications":[["Model","USS-DVT1","Brand","U.S. Solid"],["Rotor Types","1#,2#,3#,4#","Rotor Velocity (rpm)","0.3, 0.6, 1.5, 3, 6, 12, 30, 60 rpm and Auto"],["Measurement Accuracy","±2% (Newton liquid)","Power Supply","AC 110 V"],["Ambient Temperature","5°C- 35°C, Relative humidity: ≤ 80%","Measurement Range","1-2×10^6 mPas"]],"Other Models":[["Model","USS-DVT1","USS-DVT4","USS-DVT5","USS-DVT6","USS-DVT8"],["Measuring Range","10 to 2x10^6 mPa·s","10 to 1x10^5 mPa·s","10 to 1x10^5 mPa·s","10 to 1x10^5 mPa·s","10 to 2x10^6 mPa·s"],["With Temperature Probe","✘","✘","✔","✔","✔"],["With RS232","✘","✘","✔","✘","✔"],["Rotor Speed1","0.3, 0.6, 1.5, 3 rpm","-","-","-","0.3, 0.6, 1.5, 3 rpm"],["Rotor Speed2","6,12,30, 60 rpm and Auto","6,12,30, 60 rpm and Auto","6,12,30, 60 rpm and Auto","6,12,30, 60 rpm and Auto","6,12,30, 60 rpm and Auto"],["Measurement Accuracy","±2% (Newtonian Liquid)","±2% (Newtonian Liquid)","±2% (Newtonian Liquid)","±2% (Newtonian Liquid)","±2% (Newtonian Liquid)"],["Power Supply","AC 110V±10, 60Hz±10%","AC 110V±10, 60Hz±10%","AC 110V±10, 60Hz±10%","AC 110V±10, 60Hz±10%","AC 110V±10, 60Hz±10%"],["Working Temperature","41 ℉ to 95 ℉","41 ℉ to 95 ℉","41 ℉ to 95 ℉","41 ℉ to 95 ℉","41 ℉ to 95 ℉"],["Working Humidity","≤80%","≤80%","≤80%","≤80%","≤80%"]]},"JFDBS":{"Packing List":[["①","Balance Main Body","②","Terminal"],["③","Instruction Manual","④","Calibration Weight (1000g)"],["⑤","Power Cable","⑥","USB Cable"],["⑦","Weighing Pan","",""]],"Technical Data":[["Model","USS-DBS74-10","Working Temperature","63.5°F-72.5°F"],["Weighing Sensor","Electromagnetic force","Stabilization Time","≤3s"],["Calibration","External calibration","Calibration Weight","1000g*1"],["Capacity","0.02g-1000g","Units","g, oz, ct, mg, lb, gn, ozt, dwt"],["Readability","0.001g(1mg)","Interface","RS232 and USB"],["Repeatability","±0.001g","Power","AC 100V-240V"],["Linearity","±0.001g","Packaging Dimensions","19.09\"x14.96\"x19.29\""],["Pan Size","Φ90 mm","Gross Weight","23.77 lbs"],["Display","Removable","Windshield","Yes"]],"Error Codes":[["Problem","Cause","Solution"],["Display not working","No power supply; Fuse damaged; Power transformer is damaged;","Plug in adapter; Replace the fuse; Replace the power transformer; lf problem persists, send the balance to the Technical Service for repair."],["Unstable display","Poor working conditions; Air flow; Something between the scale pan and working table; The power exceeds its permissible value and is unstable; Static electricity;","lmprove the working condition; Close the windshield; Remove the pan and clean well the balance surface; Connect the balance to power supply 110-220V AC."],["Poor accuracy","Improper calibration; The weight ofthe recipient has not been tared; Big temperature difference; The balance is not horizontal;","Double check calibration; Make sure the receptacle has been tared out; Place the balance in a suitable working environment; Make sure balance is on a flat, even surface."]],"All Options (0.01mg)":[["Units","Dual Capacity","Model","Readability","Capacity","Repeatability","Linearity","Calibration","Stabilization Time","Pan Size","Interface","Power Supply"],["8 types","yes","USS-DBS65-31G","0.01mg","0.00001g-31g","±0.03mg","±0.03mg","external calibration","≤3s","Φ90mm","RS232 and USB","AC"],["0.1mg","0.0001g-120g","±0.1mg","±0.2mg"],["USS-DBS65-51G","0.01mg","0.00001g-51g","±0.03mg","±0.03mg"],["0.1mg","0.0001g-120g","±0.1mg","±0.2mg"],["USS-DBS65-81G","0.01mg","0.00001g-81g","±0.03mg","±0.03mg"],["0.1mg","0.0001g-120g","±0.1mg","±0.2mg"],["USS-DBS70-81G","0.01mg","0.00001g-81g","±0.03mg","±0.03mg"],["0.1mg","0.0001g-200g","±0.1mg","±0.2mg"],["USS-DBS70-81G-IC","0.01mg","0.00001g-81g","±0.03mg","±0.03mg","internal calibration"],["0.1mg","0.0001g-200g","±0.1mg","±0.2mg"],["* 8 Types: g, oz, ct, mg, lb, gn, ozt, dwt"]],"All Options (0.1mg)":[["Units","Dual Capacity","Model","Readability","Capacity","Repeatability","Linearity","Calibration","Stabilization Time","Pan Size","Interface","Power Supply"],["8 types","no","USS-DBS71-120G","0.1mg","0.0001g-120g","±0.1mg","±0.2mg","external calibration","≤1.5s","Φ90mm","RS232 and USB","AC"],["USS-DBS71-220G","0.0001g-220g","external calibration"],["USS-DBS71-220G-IC","internal calibration"],["USS-DBS71-320G","0.0001g-320g","±0.2mg","±0.3mg","external calibration","≤3s"],["USS-DBS71-520G","0.0001g-520g"],["* 8 Types: g, oz, ct, mg, lb, gn, ozt, dwt"]],"All Options (1mg)":[["Units","Dual Capacity","Model","Readability","Capacity","Repeatability","Linearity","Calibration","Stabilization Time","Pan Size","Interface","Power Supply"],["8 types","no","USS-DBS74-6","1mg","0.02g-600g","±1mg","±1mg","external calibration","≤3s","Φ90mm","RS232 and USB","AC"],["USS-DBS74-8","0.02g-800g"],["USS-DBS74-10","0.02g-1000g"],["USS-DBS74-20","0.02g-2000g","≤5s"],["* 8 Types: g, oz, ct, mg, lb, gn, ozt, dwt"]]},"JFESM":{"Technical Data":[["Model","USS-ESM00054","Suitable Strapping Thickness","0.4-1.2mm"],["Operation Method","Automatic","Packing Efficiency","250-350 pcs(Approx. per Charge)"],["Display","LCD screen","Charging Time","90min"],["Voltage","14.4V","Adhesive Strength","75%"],["Battery Capacity","4.0Ah, Lithium battery","Input","AC 110V/AC 220V;50/60Hz;1.5A"],["Battery Quantity","2","Ambient Air Temperature","41℉ to 113℉ (5℃ to 45℃)"],["Suitable Strapping Width","1/2-5/8in","Optimum Working Temperature","59℉ to 68℉ (15℃ to 20℃)"],["Suitable Strapping","PP, PET","Product Dimensions","4.92x5.12x12.99 in(12.5x13x33 cm)"],["Maximum Tensioning Force","3200N","Gross Weight","12.46lb/5.65kg"],["Tensioning Force","Adjustable","Welding Time","Adjustable"]],"All Options":[["Operation Method","Model","Display","Battery","Voltage","Max Tensioning Force","Strapping Width","Strapping Thickness","Packing Efficiency"],["Auto","USS-ESM44","×","4.0Ah, 2pcs","11.1V","2800N","1/2-5/8in","0.4-1.2mm","180pcs"],["USS-ESM29","4.0Ah, 2pcs","11.1V","2800N","1/2-5/8in","0.4-1.2mm","250pcs"],["USS-ESM34","4.0Ah, 2pcs","14.4V","3200N","1/2-5/8in","0.6-1.2mm","300pcs"],["USS-ESM32","4.0Ah, 2pcs","14.8V","3200N","1/2-5/8in","0.4-1.2mm","400pcs"],["USS-ESM54","LCD screen","4.0Ah, 2pcs","14.4V","3200N","1/2-5/8in","0.4-1.2mm","250-350pcs"],["USS-ESM35","4.0Ah, 2pcs","14.4V","3200N","1/2-5/8in","0.4-1.2mm","200-300pcs"],["USS-ESM01","4.0Ah, 2pcs","14.4V","3200N","1/2-5/8in","0.4-1.2mm","250-350pcs"],["USS-ESM26","4.0Ah, 2pcs","14.8V","5500N","1/2-1in","0.4-1.2mm","180pcs"],["Semi-auto","USS-ESM16","×","3.0Ah, 2pcs","14.4V","2100N","1/2-5/8in","0.4-1.2mm","300pcs"],["USS-ESM25","3.0Ah, 2pcs","14.4V","3200N","1/2-3/4in","0.4-1.5mm","300pcs"]]},"JFCBB":{"Specifications":[["Model","USS-CBB00001","Brand","U.S. Solid"],["Power Supply","110V,60HZ","Power","600W"],["Sealing Speed","0 - 12M/min (adjustable)","Sealing Width","0.47 inch"],["Max. Seal Thickness","0.03 inch","Temp. range","0 - 300℃ (adjustable)"],["The Height of the Machine","Adjustable","The Height Range of the Bags","4.33\"-8.66\""],["Max. Load Weight","11 lb","Dimensions of Conveyor Table（L*W*H)","53.93\"*9.44\"*12.2\""]]},"JFFMT":{"Packing List":[["①","2 x Bucket with lid","②","2 x Spigot"],["③","2 x Airlock","④","2 x Rubber Plug"],["⑤","2 x Opener","",""]],"Technical Data":[["Model","USS-FMT00003","Material","Polypropylene"],["Grade","Food Grade","Testing","BPA-free"],["Airlock","Translucent","Outer Diameter of Spigot","0.374\""],["Unit Dimensions","12\"x12\"x18\"","Unit Net Weight","2.87 lbs"]]}};
 
     const imageSections = /Features|Applications|CE|Valve Attributes|WIRING|CHEMICAL|Packing|More Details|Smart Control|User Manual/i;
-    const tableSections = /Specifications|Technical Data|OTHER MODELS|Other Models|All Options|Packing List|Error Codes/i;
+    const tableSections = /Specifications|Technical Data|OTHER MODELS|Other Models|All Options|Error Codes/i;
     const faqSections = /FAQ/i;
+    const noImageSections = /^(Introduction|INTRODUCTION|SPECIFICATIONS|Specifications|User Manual|Technical Data)$/i;
+    const imageOnlySections = /^(Applications|APPLICATIONS|Ce Certified Quality & Safety|CE CERTIFIED QUALITY & SAFETY|CHEMICAL RESISTANCE CHART FOR BALL VALVE SEAL MATERIALS)$/i;
 
     const samples = {
       JFMSV: {
@@ -347,6 +453,50 @@
       JFSV: {
         model: "JFSV00402",
         title: "1/2 inch Smart Solenoid Valve - WiFi APP-Controlled Brass Solenoid Valve",
+        cover: "",
+        images: {}
+      },
+      JFPSV: {
+        model: "JFPSV00040",
+        title: "U.S. Solid 1/8 inch NPT 2/2 Female 12 V DC Normally Closed Pneumatic Solenoid Valve",
+        cover: "",
+        images: {}
+      },
+      JFDVT: {
+        model: "JFDVT00001",
+        title: "U.S. Solid Rotary Viscometer - 1-2,000,000 mPa.s Range, LCD Display",
+        cover: "http://file.ussolid.com/content/Detailed%20Page/JFDVT/Coverimage.png",
+        images: {
+          "Features": "http://file.ussolid.com/content/Detailed%20Page/JFDVT/Features.png",
+          "Applications": "http://file.ussolid.com/content/Detailed%20Page/JFDVT/Application.png",
+          "HOW TO CHOOSE THE RIGHT VISCOMETER AND ROTOR?": "http://file.ussolid.com/content/Detailed%20Page/JFDVT/How%20to%20Choose.png",
+          "Packing List": "http://file.ussolid.com/content/Detailed%20Page/JFDVT/Packinglist.png"
+        },
+        texts: {
+          "Packing List": "1. Main Machine x1\n2. Packaging Box x1\n3. Rotor x4\n4. Wrench x2\n5. Power Supply x1\n6. User Manual x1"
+        }
+      },
+      JFDBS: {
+        model: "JFDBS00074-1000G",
+        title: "U.S. Solid Precision Balance 0.001 g x 1000 g - 1 mg Lab Analytical Scale",
+        cover: "",
+        images: {}
+      },
+      JFESM: {
+        model: "JFESM00054",
+        title: "Electric Strapping Machine with LCD Screen for 1/2-5/8in PP PET Straps",
+        cover: "",
+        images: {}
+      },
+      JFCBB: {
+        model: "JFCBB00001",
+        title: "Vertical Automatic Continuous Band Sealer - Sealing Machine with Digital Temperature Control",
+        cover: "",
+        images: {}
+      },
+      JFFMT: {
+        model: "JFFMT00003",
+        title: "2-Pack Plastic Fermenter - 6.5 Gallon Food-Grade Fermenting Bucket",
         cover: "",
         images: {}
       }
@@ -390,6 +540,11 @@
       return cloneRows((tableData[prefix] && tableData[prefix][title]) || pipeRows(defaults.table));
     }
 
+    function isTableSection(title) {
+      const prefix = $("prefix") ? $("prefix").value : "JFMSV";
+      return Boolean((tableData[prefix] && tableData[prefix][title]) || tableSections.test(title));
+    }
+
     function tableEditorHtml(rows) {
       return `<div class="table-tools">
         <button type="button" class="table-add-row">新增行</button>
@@ -399,6 +554,17 @@
       <div class="edit-table-wrap">
         <table class="edit-table"><tbody>${editorRowsHtml(rows)}</tbody></table>
       </div>`;
+    }
+
+    function imageEditorHtml() {
+      return `<div class="image-list">
+        <div class="image-row">
+          <input class="sec-img-input" placeholder="https://.../image.jpg">
+          <button type="button" class="image-del">删除</button>
+        </div>
+      </div>
+      <button type="button" class="image-add">新增图片</button>
+      <textarea class="sec-img" style="display:none"></textarea>`;
     }
 
     function editorRowsHtml(rows) {
@@ -416,45 +582,111 @@
       }).filter(row => row.some(Boolean));
     }
 
+    function getImageText(sec) {
+      const inputs = [...sec.querySelectorAll(".sec-img-input")];
+      if (inputs.length) return inputs.map(input => input.value.trim()).filter(Boolean).join("\n");
+      return sec.querySelector(".sec-img") ? sec.querySelector(".sec-img").value : "";
+    }
+
+    function setImageText(sec, text) {
+      const list = sec.querySelector(".image-list");
+      if (!list) {
+        const hidden = sec.querySelector(".sec-img");
+        if (hidden) hidden.value = text || "";
+        return;
+      }
+      const values = lines(text);
+      list.innerHTML = (values.length ? values : [""]).map(value => `<div class="image-row">
+          <input class="sec-img-input" placeholder="https://.../image.jpg" value="${attr(value)}">
+          <button type="button" class="image-del">删除</button>
+        </div>`).join("");
+    }
+
     function setEditorRows(sec, rows) {
       const tbody = sec.querySelector(".edit-table tbody");
       if (!tbody) return;
       tbody.innerHTML = editorRowsHtml(rows.length ? rows : [[""]]);
     }
 
-    function makeSection(title, checked = true) {
-      const isImage = imageSections.test(title);
-      const isTable = tableSections.test(title);
+    function makeSection(title, checked = true, customTypes = null) {
+      const isCustom = Boolean(customTypes);
+      const isImage = isCustom ? customTypes.image : imageSections.test(title);
+      const isTable = isCustom ? customTypes.table : isTableSection(title);
       const isFaq = faqSections.test(title);
+      const textAllowed = isCustom ? customTypes.text : !imageOnlySections.test(title);
+      const imageAllowed = isCustom ? customTypes.image : isImage && !noImageSections.test(title) && !(isTable && /^Packing List$/i.test(title));
       const tableRows = isTable ? defaultRowsFor(title) : [];
+      const visibleCount = [textAllowed, imageAllowed, isTable].filter(Boolean).length;
+      const bodyClass = visibleCount > 1 ? "sec-body" : "sec-body single";
+      const textField = textAllowed ? `
+          <div class="field">
+            <label>文字内容</label>
+            <textarea class="sec-text" placeholder="${isFaq ? "Question | Answer" : "Section text"}">${isFaq ? defaults.faq : ""}</textarea>
+          </div>` : "";
+      const tableField = isTable ? `
+          <div class="field">
+            <label>表格内容（直接编辑单元格）</label>
+            ${tableEditorHtml(tableRows)}
+          </div>` : "";
+      const imageField = imageAllowed ? `
+          <div class="field">
+            <label>图片 URL（一行一个，可留空）</label>
+            ${imageEditorHtml()}
+          </div>` : `<textarea class="sec-img" style="display:none"></textarea>`;
       const card = document.createElement("div");
       card.className = "sec";
       card.innerHTML = `
         <div class="sec-bar">
           <input type="checkbox" class="sec-on" ${checked ? "checked" : ""}>
           <input class="sec-title" value="${attr(title)}">
-          <span class="small">${isTable ? "table" : isFaq ? "faq" : isImage ? "image" : "text"}</span>
+          <span class="small">${isTable ? "table" : isFaq ? "faq" : imageAllowed && !textAllowed ? "image" : imageAllowed ? "text+image" : "text"}</span>
+          ${isCustom ? `<button type="button" class="sec-remove">删除区块</button>` : ""}
         </div>
-        <div class="sec-body">
-          <div class="field">
-            <label>${isTable ? "表格内容（直接编辑单元格）" : "文字内容"}</label>
-            ${isTable ? tableEditorHtml(tableRows) : `<textarea class="sec-text" placeholder="${isFaq ? "Question | Answer" : "Section text"}">${isFaq ? defaults.faq : ""}</textarea>`}
-          </div>
-          <div class="field">
-            <label>图片 URL（一行一个，可留空）</label>
-            <textarea class="sec-img" placeholder="https://.../image.jpg"></textarea>
-          </div>
+        <div class="${bodyClass}">
+          ${textField}
+          ${tableField}
+          ${imageField}
         </div>`;
+      card.dataset.customTypes = customTypes ? JSON.stringify(customTypes) : "";
       card.querySelectorAll("input, textarea").forEach(el => {
         el.addEventListener("input", render);
         el.addEventListener("change", render);
       });
       card.addEventListener("input", event => {
-        if (event.target.closest(".edit-table")) render();
+        if (event.target.closest(".edit-table") || event.target.classList.contains("sec-img-input")) render();
       });
       card.addEventListener("click", event => {
         const sec = event.target.closest(".sec");
-        if (!sec || !event.target.closest(".table-tools, .row-del")) return;
+        if (!sec) return;
+        if (event.target.classList.contains("sec-remove")) {
+          sec.remove();
+          render();
+          return;
+        }
+        if (event.target.classList.contains("image-add")) {
+          const list = sec.querySelector(".image-list");
+          if (list) {
+            list.insertAdjacentHTML("beforeend", `<div class="image-row">
+              <input class="sec-img-input" placeholder="https://.../image.jpg">
+              <button type="button" class="image-del">删除</button>
+            </div>`);
+          }
+          render();
+          return;
+        }
+        if (event.target.classList.contains("image-del")) {
+          const list = sec.querySelector(".image-list");
+          event.target.closest(".image-row").remove();
+          if (list && !list.querySelector(".image-row")) {
+            list.insertAdjacentHTML("beforeend", `<div class="image-row">
+              <input class="sec-img-input" placeholder="https://.../image.jpg">
+              <button type="button" class="image-del">删除</button>
+            </div>`);
+          }
+          render();
+          return;
+        }
+        if (!event.target.closest(".table-tools, .row-del")) return;
         const rows = getEditorRows(sec);
         const max = Math.max(1, ...rows.map(row => row.length));
         if (event.target.classList.contains("table-add-row")) {
@@ -486,39 +718,65 @@
         $("cover").value = sample.cover;
         document.querySelectorAll(".sec").forEach(sec => {
           const title = sec.querySelector(".sec-title").value;
-          if (sample.images[title]) sec.querySelector(".sec-img").value = sample.images[title];
+          if (sample.images[title]) setImageText(sec, sample.images[title]);
+          if (sample.texts && sample.texts[title] && sec.querySelector(".sec-text")) {
+            sec.querySelector(".sec-text").value = sample.texts[title];
+          }
         });
       }
       render();
     }
 
-    function sectionHtml(title, text, imageText, rows) {
-      const imgs = lines(imageText);
+    function sectionHtml(title, text, imageText, rows, customTable = false) {
+      const imgs = noImageSections.test(title) ? [] : lines(imageText);
       let body = "";
+      if (/^Packing List$/i.test(title) && imgs.length && lines(text).length) {
+        return packingListHtml(title, text, imgs[0]);
+      }
       if (faqSections.test(title)) {
-        body += pipeRows(text).map(row => `<p class="uss-faq-q">${esc(row[0])}</p>\n<p class="uss-faq-a">${esc(row.slice(1).join(" | "))}</p>`).join("\n");
-      } else if (tableSections.test(title)) {
-        body += tableHtmlFromRows(rows, /OTHER|Other|All Options|Error Codes/i.test(title));
+        body += `<div class="faq-wrapper">\n${pipeRows(text).map(row => `<div class="faq-block">\n<p class="faq-q">${esc(row[0])}</p>\n<p class="faq-a">${esc(row.slice(1).join(" | "))}</p>\n</div>`).join("\n")}\n</div>`;
       } else {
-        body += lines(text).map(line => `<p class="uss-text">${esc(line)}</p>`).join("\n");
+        body += lines(text).map(line => `<p class="section-p">${esc(line)}</p>`).join("\n");
+      }
+      if (rows && rows.length) {
+        const mode = customTable ? "general" : (/OTHER|Other|All Options|Error Codes/i.test(title) ? "model" : "spec");
+        body += (body ? "\n" : "") + tableHtmlFromRows(rows, mode);
       }
       if (imgs.length) {
-        body += (body ? "\n" : "") + imgs.map((src, i) => `<img class="uss-img" src="${attr(src)}" alt="${attr(title)} ${i + 1}">`).join("\n");
+        body += (body ? "\n" : "") + imgs.map((src, i) => `<div class="img-box"><img src="${attr(src)}" alt="${attr(title)} ${i + 1}"></div>`).join("\n");
       }
-      if (!body.trim()) body = `<p class="uss-text">${esc(defaults.text)}</p>`;
-      return `<section class="uss-section uss-${className(title)}">\n<h2 class="uss-title">${esc(title)}</h2>\n${body}\n</section>`;
+      if (!body.trim() && !imageOnlySections.test(title)) body = `<p class="section-p">${esc(defaults.text)}</p>`;
+      return `<section class="uss-section uss-${className(title)}">\n<h2 class="section-title">${esc(title)}</h2>\n${body}\n</section>`;
     }
 
-    function tableHtmlFromRows(rows, modelTable) {
+    function packingListHtml(title, text, imageUrl) {
+      const items = lines(text).map(line => line.replace(/^\d+\.\s*/, ""));
+      return `<section class="uss-section uss-${className(title)}">
+<h2 class="section-title">${esc(title.toUpperCase())}</h2>
+<div class="packing-container">
+  <div class="packing-text">
+    <ol>
+${items.map(item => `      <li>${esc(item)}</li>`).join("\n")}
+    </ol>
+  </div>
+  <div class="packing-img">
+    <img src="${attr(imageUrl)}" alt="${attr(title)}">
+  </div>
+</div>
+</section>`;
+    }
+
+    function tableHtmlFromRows(rows, mode) {
       if (!rows.length) return "";
       const max = Math.max(...rows.map(row => row.length));
-      return `<div class="uss-table-wrap">
-<table class="uss-table${modelTable ? " uss-model-table" : ""}">
+      return `<div class="table-wrapper">
+<table class="visco-table${mode === "model" ? " model-table" : ""}${mode === "general" ? " general-table" : ""}">
 <tbody>
 ${rows.map(row => {
         const cells = [...row];
         while (cells.length < max) cells.push("");
-        return `<tr>${cells.map((cell, i) => tableCell(cell, i, modelTable)).join("")}</tr>`;
+        const rowIndex = rows.indexOf(row);
+        return `<tr>${cells.map((cell, i) => tableCell(cell, i, mode, rowIndex)).join("")}</tr>`;
       }).join("\n")}
 </tbody>
 </table>
@@ -526,12 +784,13 @@ ${rows.map(row => {
 <p class="uss-note">To view the full table on mobile, please swipe left or right on the screen.</p>`;
     }
 
-    function tableCell(cell, index, modelTable) {
+    function tableCell(cell, index, mode, rowIndex) {
       const text = esc(cell);
       const url = String(cell || "").trim();
       const content = /^https?:\/\//i.test(url) ? `<a href="${attr(url)}" target="_blank" rel="noopener">View</a>` : text;
-      if (!modelTable && index % 2 === 0) return `<th>${content}</th>`;
-      if (modelTable && index === 0) return `<th>${content}</th>`;
+      if (mode === "general" && index === 0) return `<th>${content}</th>`;
+      if (mode === "spec" && index % 2 === 0) return `<th>${content}</th>`;
+      if (mode === "model" && index === 0) return `<th>${content}</th>`;
       return `<td>${content}</td>`;
     }
 
@@ -541,11 +800,11 @@ ${rows.map(row => {
       const model = $("model").value.trim();
       const prefix = $("prefix").value;
       const blocks = [];
-      if (cover) blocks.push(`<img class="uss-hero" src="${attr(cover)}" alt="${attr(title || model || prefix)}">`);
+      if (cover) blocks.push(`<div class="img-box"><img src="${attr(cover)}" alt="${attr(title || model || prefix)}"></div>`);
       if (title || model) {
         blocks.push(`<section class="uss-section uss-product-head">
-<h2 class="uss-title">${esc(title || model)}</h2>
-${model ? `<p class="uss-text"><strong>Model:</strong> ${esc(model)}</p>` : ""}
+<h2 class="section-title">${esc(title || model)}</h2>
+${model ? `<p class="section-p"><strong>Model:</strong> ${esc(model)}</p>` : ""}
 </section>`);
       }
       document.querySelectorAll(".sec").forEach(sec => {
@@ -553,8 +812,9 @@ ${model ? `<p class="uss-text"><strong>Model:</strong> ${esc(model)}</p>` : ""}
         blocks.push(sectionHtml(
           sec.querySelector(".sec-title").value,
           sec.querySelector(".sec-text") ? sec.querySelector(".sec-text").value : "",
-          sec.querySelector(".sec-img").value,
-          sec.querySelector(".edit-table") ? getEditorRows(sec) : []
+          getImageText(sec),
+          sec.querySelector(".edit-table") ? getEditorRows(sec) : [],
+          Boolean(sec.dataset.customTypes && sec.querySelector(".edit-table"))
         ));
       });
       return `${PDP_CSS}\n<div class="uss-pdp" data-sku-prefix="${attr(prefix)}">\n${blocks.join("\n\n")}\n</div>`;
@@ -605,7 +865,28 @@ ${model ? `<p class="uss-text"><strong>Model:</strong> ${esc(model)}</p>` : ""}
     $("download").addEventListener("click", downloadHtml);
     $("loadSample").addEventListener("click", () => loadPrefix($("prefix").value));
     $("addCustom").addEventListener("click", () => {
-      $("sections").appendChild(makeSection(`Custom Section ${customIndex++}`, true));
+      $("customTitle").value = `Custom Section ${customIndex}`;
+      $("customText").checked = true;
+      $("customImage").checked = false;
+      $("customTable").checked = false;
+      $("customModal").classList.add("open");
+    });
+    $("cancelCustom").addEventListener("click", () => {
+      $("customModal").classList.remove("open");
+    });
+    $("confirmCustom").addEventListener("click", () => {
+      const types = {
+        text: $("customText").checked,
+        image: $("customImage").checked,
+        table: $("customTable").checked
+      };
+      if (!types.text && !types.image && !types.table) {
+        types.text = true;
+      }
+      const title = $("customTitle").value.trim() || `Custom Section ${customIndex}`;
+      $("sections").appendChild(makeSection(title, true, types));
+      customIndex += 1;
+      $("customModal").classList.remove("open");
       render();
     });
     $("selectAll").addEventListener("click", () => {
