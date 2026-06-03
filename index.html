@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>U.S. Solid CSS Product Detail Builder</title>
+  <style>
+    :root {
+      --bg: #f5f6f5;
+      --card: #fff;
+      --text: #202624;
+      --muted: #5f6c68;
+      --line: #dfe5e2;
+      --soft: #f2f2f2;
+      --green: #0f766e;
+      --green-dark: #0b5f58;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 Arial, "Microsoft YaHei", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    .app {
+      width: min(1420px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 22px 0 36px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; font-size: 30px; line-height: 1.2; }
+    .hint { margin: 4px 0 0; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(390px, .9fr) minmax(460px, 1.1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfb;
+    }
+    h2 { margin: 0; font-size: 18px; }
+    .body { padding: 16px; }
+    .form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .field { display: grid; gap: 5px; min-width: 0; }
+    .full { grid-column: 1 / -1; }
+    label { font-weight: 700; font-size: 13px; }
+    input, select, textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #cbd5d1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+    textarea { min-height: 86px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, .12);
+    }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      padding: 8px 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn.primary {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+    .btn.primary:hover { background: var(--green-dark); }
+    .sections {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .sec {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .sec-bar {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) 92px;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      background: #fbfcfb;
+      border-bottom: 1px solid var(--line);
+    }
+    .sec-bar input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      min-height: 0;
+      padding: 0;
+      accent-color: var(--green);
+    }
+    .sec-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px;
+    }
+    .sec textarea { min-height: 72px; }
+    .small { color: var(--muted); font-size: 12px; }
+    .code {
+      min-height: 430px;
+      white-space: pre;
+      font: 12px/1.45 Consolas, "Courier New", monospace;
+    }
+    .preview {
+      max-height: 620px;
+      overflow: auto;
+      padding: 16px;
+    }
+    .status {
+      min-height: 20px;
+      color: var(--green);
+      font-weight: 700;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .right { position: sticky; top: 12px; display: grid; gap: 14px; }
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: 1fr; }
+      .right { position: static; }
+    }
+    @media (max-width: 680px) {
+      .app { width: min(100vw - 16px, 680px); padding-top: 12px; }
+      .top, .head { align-items: stretch; flex-direction: column; }
+      .form, .sec-body { grid-template-columns: 1fr; }
+      .sec-bar { grid-template-columns: 24px minmax(0, 1fr); }
+      .btns .btn { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div>
+        <h1>CSS 版产品详情页生成器</h1>
+        <p class="hint">选择 SKU 前缀，勾选区块，填写文字 / 图片链接，生成更短、更方便修改的 Shopify HTML。</p>
+      </div>
+      <div class="btns">
+        <button class="btn" id="loadSample" type="button">载入示例</button>
+        <button class="btn primary" id="copyTop" type="button">复制 HTML</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="head">
+          <h2>输入内容</h2>
+          <span class="small" id="countText"></span>
+        </div>
+        <div class="body">
+          <div class="form">
+            <div class="field">
+              <label for="prefix">产品 SKU 前缀</label>
+              <select id="prefix"></select>
+            </div>
+            <div class="field">
+              <label for="model">产品型号 / SKU</label>
+              <input id="model" placeholder="JFMSV00205">
+            </div>
+            <div class="field full">
+              <label for="title">产品标题</label>
+              <input id="title" placeholder="Motorized Ball Valve - 1/2&quot; Brass...">
+            </div>
+            <div class="field full">
+              <label for="cover">详情页首图 URL</label>
+              <input id="cover" placeholder="https://.../coverimage.png">
+            </div>
+          </div>
+
+          <div class="sections" id="sections"></div>
+
+          <div class="btns" style="margin-top:12px">
+            <button class="btn" id="addCustom" type="button">增加自定义区块</button>
+            <button class="btn" id="selectAll" type="button">全选</button>
+            <button class="btn" id="selectNone" type="button">取消全选</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="right">
+        <section class="panel">
+          <div class="head">
+            <h2>生成 HTML</h2>
+            <div class="btns">
+              <button class="btn" id="download" type="button">下载</button>
+              <button class="btn primary" id="copy" type="button">复制</button>
+            </div>
+          </div>
+          <div class="body">
+            <textarea id="output" class="code" readonly spellcheck="false"></textarea>
+            <div class="status" id="status"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="head">
+            <h2>预览</h2>
+            <span class="small">实际效果仍以 Shopify 主题为准</span>
+          </div>
+          <div class="preview" id="preview"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const PDP_CSS = `<style>
+.uss-pdp{font-family:Arial,sans-serif;color:#000;line-height:26px}
+.uss-pdp img{max-width:100%;height:auto;border:0;display:block}
+.uss-hero{margin:0 0 18px}
+.uss-title{font-size:22px;line-height:1.2;margin:20px 0 10px;font-weight:bold;color:#000}
+.uss-text{font-size:16px;margin:8px 0;color:#000}
+.uss-img{margin:10px 0 18px}
+.uss-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.uss-table-wrap{width:100%;overflow-x:auto;margin:8px 0 18px}
+.uss-table{width:100%;min-width:850px;border-collapse:collapse;background:#fff}
+.uss-table th,.uss-table td{border-top:1.2px solid #a6a6a6;border-bottom:1.2px solid #a6a6a6;border-left:0;border-right:0;padding:5px;text-align:left;font-size:16px;line-height:18px}
+.uss-table th,.uss-gray{background:#f2f2f2;font-weight:bold;color:#2c2c2c}
+.uss-options th,.uss-options td{border:2px solid #000;text-align:center}
+.uss-faq-q{font-size:16px;margin:8px 0 0;font-weight:bold;background:#f2f2f2;padding:5px}
+.uss-faq-a{font-size:16px;margin:0 0 8px;padding:5px}
+.uss-note{font-size:14px;color:#555;margin:6px 0}
+@media(max-width:600px){.uss-grid{grid-template-columns:1fr}.uss-title{font-size:20px}}
+</style>`;
+
+    const templates = {
+      JFMSV: ["Introduction","Features","Applications","OPERATION PERFORMANCE","SPECIFICATIONS","CE CERTIFIED QUALITY & SAFETY","FAQ","WARNING","Valve Attributes","WIRING SCHEMATICS","OTHER MODELS","CHEMICAL RESISTANCE CHART FOR BALL VALVE SEAL MATERIALS"],
+      JFSV: ["Introduction","Applications","Smart Control","Valve Features","User Manual","Technical Data","Ce Certified Quality & Safety","Operating Principle","FAQ","WIRING","Polarity","Precautions"],
+      JFPSV: ["Introduction","Features","Applications","Specifications","HOW to WIRE","INSTALLATION","Valve Attributes","FAQ"],
+      JFDVT: ["Introduction","Features","Applications","Specifications","HOW TO CHOOSE THE RIGHT VISCOMETER AND ROTOR?","Packing List","Other Models","FAQ"],
+      JFDBS: ["Introduction","Applications","Features","More Details","Packing List","Technical Data","Ce Certified Quality & Safety","Precautions","Error Codes","All Options (0.01mg)","All Options (0.1mg)","All Options (1mg)"],
+      JFESM: ["Introduction","Applications","Features","Technical Data","CE CERTIFIED QUALITY & SAFETY","User Manual","Precautions","All Options"],
+      JFCBB: ["Introduction","Features","Applications","Specifications","WARNING","Packing List","Other Models","Explore Our Full Range of Band Sealers"],
+      JFFMT: ["Introduction","Applications","Features","Packing List","Technical Data","User Manual","FAQ"]
+    };
+
+    const imageSections = /Features|Applications|CE|Valve Attributes|WIRING|CHEMICAL|Packing|More Details|Smart Control|User Manual/i;
+    const tableSections = /Specifications|Technical Data|OTHER MODELS|Other Models|All Options|CHEMICAL|Packing List|Error Codes/i;
+    const faqSections = /FAQ/i;
+
+    const samples = {
+      JFMSV: {
+        model: "JFMSV00205",
+        title: "Motorized Ball Valve - 1/2 inch Brass Electrical Ball Valve with Manual Function",
+        cover: "http://file.ussolid.com/content/Detailed%20Page/JFMSV/coverimage.png",
+        images: {
+          "Features": "http://file.ussolid.com/content/Detailed%20Page/JFMSV/3-wire-2.png",
+          "Applications": "http://file.ussolid.com/content/Detailed%20Page/JFMSV/application.png",
+          "CE CERTIFIED QUALITY & SAFETY": "http://file.ussolid.com/content/Detailed%20Page/CE/CE-EMC.jpg",
+          "Valve Attributes": "http://file.ussolid.com/content/Detailed%20Page/JFMSV/valve%20model-Brass.png",
+          "WIRING SCHEMATICS": "http://file.ussolid.com/content/Detailed%20Page/JFMSV/wiring-2.png",
+          "CHEMICAL RESISTANCE CHART FOR BALL VALVE SEAL MATERIALS": "http://file.ussolid.com/content/Detailed%20Page/JFMSV/Material.png"
+        }
+      },
+      JFSV: {
+        model: "JFSV00402",
+        title: "1/2 inch Smart Solenoid Valve - WiFi APP-Controlled Brass Solenoid Valve",
+        cover: "",
+        images: {}
+      }
+    };
+
+    const defaults = {
+      text: "Enter product description here.",
+      table: "Model | USS-MODEL | Size | 1/2 inch\nMaterial | Brass | Voltage | 9-24V AC/DC\nSeal | PTFE | Rating | IP65",
+      faq: "What should I check before purchase? | Confirm size, voltage, material, wiring type, pressure, temperature, and media compatibility."
+    };
+
+    const $ = (id) => document.getElementById(id);
+    let customIndex = 1;
+
+    function esc(value) {
+      return String(value || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    function attr(value) {
+      return esc(value).replace(/`/g, "&#96;");
+    }
+
+    function lines(text) {
+      return String(text || "").split(/\r?\n/).map(v => v.trim()).filter(Boolean);
+    }
+
+    function pipeRows(text) {
+      return lines(text).map(line => line.split("|").map(v => v.trim()).filter(Boolean)).filter(row => row.length);
+    }
+
+    function className(title) {
+      return String(title || "section").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "section";
+    }
+
+    function makeSection(title, checked = true) {
+      const isImage = imageSections.test(title);
+      const isTable = tableSections.test(title);
+      const isFaq = faqSections.test(title);
+      const card = document.createElement("div");
+      card.className = "sec";
+      card.innerHTML = `
+        <div class="sec-bar">
+          <input type="checkbox" class="sec-on" ${checked ? "checked" : ""}>
+          <input class="sec-title" value="${attr(title)}">
+          <span class="small">${isTable ? "table" : isFaq ? "faq" : isImage ? "image" : "text"}</span>
+        </div>
+        <div class="sec-body">
+          <div class="field">
+            <label>文字 / 表格</label>
+            <textarea class="sec-text" placeholder="${isTable ? "Name | Value | Name | Value" : isFaq ? "Question | Answer" : "Section text"}">${isTable ? defaults.table : isFaq ? defaults.faq : ""}</textarea>
+          </div>
+          <div class="field">
+            <label>图片 URL（一行一个，可留空）</label>
+            <textarea class="sec-img" placeholder="https://.../image.jpg"></textarea>
+          </div>
+        </div>`;
+      card.querySelectorAll("input, textarea").forEach(el => {
+        el.addEventListener("input", render);
+        el.addEventListener("change", render);
+      });
+      return card;
+    }
+
+    function loadPrefix(prefix) {
+      $("sections").innerHTML = "";
+      templates[prefix].forEach(title => $("sections").appendChild(makeSection(title, true)));
+      const sample = samples[prefix];
+      if (sample) {
+        $("model").value = sample.model;
+        $("title").value = sample.title;
+        $("cover").value = sample.cover;
+        document.querySelectorAll(".sec").forEach(sec => {
+          const title = sec.querySelector(".sec-title").value;
+          if (sample.images[title]) sec.querySelector(".sec-img").value = sample.images[title];
+        });
+      }
+      render();
+    }
+
+    function sectionHtml(title, text, imageText) {
+      const imgs = lines(imageText);
+      let body = "";
+      if (faqSections.test(title)) {
+        body += pipeRows(text).map(row => `<p class="uss-faq-q">${esc(row[0])}</p>\n<p class="uss-faq-a">${esc(row.slice(1).join(" | "))}</p>`).join("\n");
+      } else if (tableSections.test(title)) {
+        body += tableHtml(text, /OTHER|Other|All Options|CHEMICAL/i.test(title));
+      } else {
+        body += lines(text).map(line => `<p class="uss-text">${esc(line)}</p>`).join("\n");
+      }
+      if (imgs.length) {
+        body += (body ? "\n" : "") + imgs.map((src, i) => `<img class="uss-img" src="${attr(src)}" alt="${attr(title)} ${i + 1}">`).join("\n");
+      }
+      if (!body.trim()) body = `<p class="uss-text">${esc(defaults.text)}</p>`;
+      return `<section class="uss-section uss-${className(title)}">\n<h2 class="uss-title">${esc(title)}</h2>\n${body}\n</section>`;
+    }
+
+    function tableHtml(text, options) {
+      const rows = pipeRows(text);
+      if (!rows.length) return "";
+      const max = Math.max(...rows.map(row => row.length));
+      return `<div class="uss-table-wrap">
+<table class="uss-table${options ? " uss-options" : ""}">
+<tbody>
+${rows.map(row => {
+        const cells = [...row];
+        while (cells.length < max) cells.push("");
+        return `<tr>${cells.map((cell, i) => i % 2 === 0 && !options ? `<th>${esc(cell)}</th>` : `<td>${esc(cell)}</td>`).join("")}</tr>`;
+      }).join("\n")}
+</tbody>
+</table>
+</div>
+<p class="uss-note">To view the full table on mobile, please swipe left or right on the screen.</p>`;
+    }
+
+    function buildHtml() {
+      const cover = $("cover").value.trim();
+      const title = $("title").value.trim();
+      const model = $("model").value.trim();
+      const prefix = $("prefix").value;
+      const blocks = [];
+      if (cover) blocks.push(`<img class="uss-hero" src="${attr(cover)}" alt="${attr(title || model || prefix)}">`);
+      if (title || model) {
+        blocks.push(`<section class="uss-section uss-product-head">
+<h2 class="uss-title">${esc(title || model)}</h2>
+${model ? `<p class="uss-text"><strong>Model:</strong> ${esc(model)}</p>` : ""}
+</section>`);
+      }
+      document.querySelectorAll(".sec").forEach(sec => {
+        if (!sec.querySelector(".sec-on").checked) return;
+        blocks.push(sectionHtml(
+          sec.querySelector(".sec-title").value,
+          sec.querySelector(".sec-text").value,
+          sec.querySelector(".sec-img").value
+        ));
+      });
+      return `${PDP_CSS}\n<div class="uss-pdp" data-sku-prefix="${attr(prefix)}">\n${blocks.join("\n\n")}\n</div>`;
+    }
+
+    function render() {
+      const html = buildHtml();
+      $("output").value = html;
+      $("preview").innerHTML = html;
+      const selected = [...document.querySelectorAll(".sec-on")].filter(x => x.checked).length;
+      $("countText").textContent = `${selected} 个区块已选择`;
+    }
+
+    async function copyHtml() {
+      try {
+        await navigator.clipboard.writeText($("output").value);
+      } catch {
+        $("output").focus();
+        $("output").select();
+        document.execCommand("copy");
+      }
+      $("status").textContent = "HTML 已复制";
+      setTimeout(() => $("status").textContent = "", 1800);
+    }
+
+    function downloadHtml() {
+      const name = `${$("model").value.trim() || $("prefix").value}-css-detail.html`;
+      const blob = new Blob([$("output").value], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    Object.keys(templates).forEach(prefix => {
+      const option = document.createElement("option");
+      option.value = prefix;
+      option.textContent = prefix.replace("JF", "") + " / " + prefix;
+      $("prefix").appendChild(option);
+    });
+
+    $("prefix").addEventListener("change", e => loadPrefix(e.target.value));
+    ["model", "title", "cover"].forEach(id => $(id).addEventListener("input", render));
+    $("copy").addEventListener("click", copyHtml);
+    $("copyTop").addEventListener("click", copyHtml);
+    $("download").addEventListener("click", downloadHtml);
+    $("loadSample").addEventListener("click", () => loadPrefix($("prefix").value));
+    $("addCustom").addEventListener("click", () => {
+      $("sections").appendChild(makeSection(`Custom Section ${customIndex++}`, true));
+      render();
+    });
+    $("selectAll").addEventListener("click", () => {
+      document.querySelectorAll(".sec-on").forEach(x => x.checked = true);
+      render();
+    });
+    $("selectNone").addEventListener("click", () => {
+      document.querySelectorAll(".sec-on").forEach(x => x.checked = false);
+      render();
+    });
+
+    loadPrefix("JFMSV");
+  </script>
+</body>
+</html>
